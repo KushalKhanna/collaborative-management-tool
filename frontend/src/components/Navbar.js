@@ -1,8 +1,38 @@
 import { useState } from 'react';
+import { toast, ToastContainer } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleLogout = () => {
+    try {
+      // const response = await axios.post('http://localhost:5000/api/users/signup', {
+      //   name,
+      //   userName,
+      //   password
+      // });
+
+      // console.log('Signup response:', response.data);
+
+      localStorage.removeItem("loggedInUser");
+      toast.success('Logged out successfully! Redirecting to login...', {
+        autoClose: 3000,
+        onClose: () => navigate('/login'),
+        closeButton: true,
+        pauseOnHover: false,
+      });
+
+    } catch (error) {
+      toast.error('Signup failed.' + error.response?.data?.message + 'Please try again.', {
+        autoClose: 3000,
+        closeButton: true,
+        pauseOnHover: false,
+      });
+    }
+  };
 
   return (
     <>
@@ -34,7 +64,9 @@ const Navbar = () => {
           
           {/* Right side - desktop */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="px-4 py-2 bg-transparent hover:bg-gray-800 rounded-full text-white font-medium transition-colors border border-gray-700">
+            <button className="px-4 py-2 bg-transparent hover:bg-gray-800 rounded-full text-white font-medium transition-colors border border-gray-700"
+              onClick={handleLogout}
+            >
               Logout
             </button>
           </div>
@@ -73,10 +105,13 @@ const Navbar = () => {
           <MobileNavLink href="#" onClick={() => setIsOpen(false)}>Sports</MobileNavLink>
           <MobileNavLink href="#" onClick={() => setIsOpen(false)}>Bookings</MobileNavLink>
           <MobileNavLink href="#" onClick={() => setIsOpen(false)}>About</MobileNavLink>
-          <button className="mt-4 px-6 py-3 bg-transparent hover:bg-gray-800 rounded-full text-white font-medium w-full border border-gray-700">
+          <button className="mt-4 px-6 py-3 bg-transparent hover:bg-gray-800 rounded-full text-white font-medium w-full border border-gray-700"
+            onClick={handleLogout}
+          >
             Logout
           </button>
         </div>
+        <ToastContainer />
       </div>
     </>
   );

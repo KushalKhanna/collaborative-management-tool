@@ -58,7 +58,7 @@ router.post('/create', async (req, res) => {
 
     const result = await tasksCollection.insertOne(newTask);
 
-    res.status(201).json({ message: 'User story created successfully! ', result: result});
+    res.status(201).json({ message: 'User story created successfully! ', result: result, newTask: newTask});
   } catch (err) {
     res.status(500).json({ error: 'Error creating user story!' });
   }
@@ -66,7 +66,6 @@ router.post('/create', async (req, res) => {
 
 // UPDATE STORY
 router.put('/update/:taskId', async (req, res) => {
-    console.log('Hi');
     const { taskId } = req.params;
     const updatedData = req.body;
     console.log(taskId);
@@ -93,6 +92,28 @@ router.put('/update/:taskId', async (req, res) => {
       res.json({ message: 'Task updated successfully', updatedCount: result.modifiedCount });
     } catch (error) {
       console.error('Error updating task:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // DELETE STORY
+  router.delete('/delete/:taskId', async (req, res) => {
+    const { taskId } = req.params;
+  
+    try {
+      const client = await connectToDb();
+      const db = client.db(dbName);
+      const tasksCollection = db.collection(collectionName);
+  
+      const result = await tasksCollection.deleteOne({ _id: new ObjectId(taskId) });
+  
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ message: 'Task not found or already deleted' });
+      }
+  
+      res.json({ message: 'Task deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting task:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });

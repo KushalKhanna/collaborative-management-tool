@@ -7,6 +7,7 @@ import axios from 'axios';
 import CreateTaskModal from '../components/CreateTaskModal';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ViewTaskModal from '../components/ViewTaskModal';
 
 const DashboardPage = () => {
   const loggedInUser = localStorage.getItem('loggedInUser');
@@ -15,10 +16,12 @@ const DashboardPage = () => {
     todo: [],
     inProgress: [],
     review: [],
-    done: []
+    done: [],
+    isPublished: []
   });
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Array of distinct colors for user circles
@@ -75,9 +78,8 @@ const DashboardPage = () => {
 
   const moveTask = async (fromColumn, toColumn, taskId) => {
     if (fromColumn === toColumn) return;
-    console.log(taskId);
   
-    const taskToMove = tasks[fromColumn].find(task => task._id === taskId);
+    const taskToMove = tasks[fromColumn]?.find(task => task._id === taskId);
     if (!taskToMove) return;
   
     try {
@@ -85,15 +87,26 @@ const DashboardPage = () => {
         status: toColumn
       });
   
-      setTasks(prev => ({
-        ...prev,
-        [fromColumn]: prev[fromColumn].filter(task => task._id !== taskId),
-        [toColumn]: [...prev[toColumn], { ...taskToMove, status: toColumn }]
-      }));
-    } catch (error) {
-      console.error("Error moving task:", error);
-      toast.error("Failed to update task status.");
+      setTasks(prev => {
+        const updatedFrom = prev[fromColumn]?.filter(task => task._id !== taskId) || [];
+        const updatedTo = [...(prev[toColumn] || []), { ...taskToMove, status: toColumn }];
+  
+        return {
+          ...prev,
+          [fromColumn]: updatedFrom,
+          [toColumn]: updatedTo
+        };
+      });
+    } catch (err) {
+      console.error("Failed to move task:", err);
     }
+  };
+
+  const handleDelete = (deletedId, fromColumn) => {
+    setTasks(prevTasks => ({
+      ...prevTasks,
+      [fromColumn]: prevTasks[fromColumn].filter(task => task._id !== deletedId)
+    }));
   };
 
   const handleUserClick = (userId) => {
@@ -104,12 +117,12 @@ const DashboardPage = () => {
     try {
       const response = await axios.post('http://localhost:5000/api/tasks/create', taskData);
       console.log('Task Created:', response.data);
-  
+
       setTasks(prev => ({
         ...prev,
-        todo: [...prev.todo, response.data]
+        todo: [...prev.todo || [], response.data.newTask]
       }));
-  
+
       toast.success('Task created successfully!');
       setIsModalOpen(false);
     } catch (error) {
@@ -118,15 +131,22 @@ const DashboardPage = () => {
     }
   };
 
+  // CLICK VIEW TASK
+  const handleViewTask = async (taskData) => {
+    console.log(taskData);
+    setSelectedTask(taskData);
+    setIsModalOpen(true);
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex flex-col h-screen bg-gray-900 text-white overflow-hidden">
         <Navbar />
-        
+
         <div className="flex flex-1 overflow-hidden pt-16">
           {/* Collapsible Sidebar */}
           <div className={`bg-gray-800 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-20'}`}>
-            <div 
+            <div
               className="p-4 flex items-center cursor-pointer hover:bg-gray-700"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
@@ -134,7 +154,7 @@ const DashboardPage = () => {
                 {sidebarOpen ? '◀' : '▶'}
               </div>
             </div>
-            
+
             {sidebarOpen && (
               <div className="p-4 space-y-4">
                 <button className="w-full bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded"
@@ -170,35 +190,52 @@ const DashboardPage = () => {
                 ))}
               </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <KanbanColumn 
-                title="To Do" 
-                tasks={tasks?.todo} 
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <KanbanColumn
+                title="To Do"
+                tasks={tasks?.todo}
                 column="todo"
                 moveTask={moveTask}
                 color="bg-blue-600"
+                handleViewTask={handleViewTask}
+                onDelete={handleDelete}
               />
-              <KanbanColumn 
-                title="In Progress" 
-                tasks={tasks?.inProgress} 
+              <KanbanColumn
+                title="In Progress"
+                tasks={tasks?.inProgress}
                 column="inProgress"
                 moveTask={moveTask}
                 color="bg-yellow-600"
+                handleViewTask={handleViewTask}
+                onDelete={handleDelete}
               />
-              <KanbanColumn 
-                title="Review" 
-                tasks={tasks?.review} 
+              <KanbanColumn
+                title="Review"
+                tasks={tasks?.review}
                 column="review"
                 moveTask={moveTask}
                 color="bg-purple-600"
+                handleViewTask={handleViewTask}
+                onDelete={handleDelete}
               />
-              <KanbanColumn 
-                title="Done" 
-                tasks={tasks?.done} 
+              <KanbanColumn
+                title="Done"
+                tasks={tasks?.done}
                 column="done"
                 moveTask={moveTask}
                 color="bg-green-600"
+                handleViewTask={handleViewTask}
+                onDelete={handleDelete}
+              />
+              <KanbanColumn
+                title="Published"
+                tasks={tasks?.published}
+                column="published"
+                moveTask={moveTask}
+                color="bg-gray-700"
+                handleViewTask={handleViewTask}
+                onDelete={handleDelete}
               />
             </div>
           </div>
@@ -206,12 +243,23 @@ const DashboardPage = () => {
       </div>
 
       <CreateTaskModal
-        isOpen={isModalOpen}
+        isOpen={isModalOpen && !selectedTask}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateTask}
         users={users}
         currentUser={loggedInUser}
       />
+
+      <ViewTaskModal
+        show={isModalOpen && selectedTask}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTask(null);
+        }}
+        onSubmit={{ handleViewTask }}
+        task={selectedTask}
+      />
+
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
     </DndProvider>
   );

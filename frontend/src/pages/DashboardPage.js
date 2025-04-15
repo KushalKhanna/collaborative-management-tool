@@ -23,6 +23,8 @@ const DashboardPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState(''); 
+  const [filteredTasks, setFilteredTasks] = useState(null);
 
   // Array of distinct colors for user circles
   const colors = [
@@ -57,7 +59,8 @@ const DashboardPage = () => {
           todo: [],
           inProgress: [],
           review: [],
-          done: []
+          done: [],
+          published: []
         };
 
         allTasks.forEach(task => {
@@ -67,6 +70,8 @@ const DashboardPage = () => {
           }
         });
 
+        setFilteredTasks(null);
+        setSelectedTag('');
         setTasks(grouped);
       } catch (error) {
         console.error("Failed to fetch tasks:", error);
@@ -91,6 +96,14 @@ const DashboardPage = () => {
         const updatedFrom = prev[fromColumn]?.filter(task => task._id !== taskId) || [];
         const updatedTo = [...(prev[toColumn] || []), { ...taskToMove, status: toColumn }];
   
+      if (selectedTag && filteredTasks){
+        setFilteredTasks(prev => ({
+          ...prev,
+          [fromColumn]: prev[fromColumn].filter(task => task._id !== taskId),
+          [toColumn]: [...prev[toColumn], { ...taskToMove, status: toColumn }]
+        }));
+      }
+      
         return {
           ...prev,
           [fromColumn]: updatedFrom,
@@ -107,6 +120,14 @@ const DashboardPage = () => {
       ...prevTasks,
       [fromColumn]: prevTasks[fromColumn].filter(task => task._id !== deletedId)
     }));
+
+    if (selectedTag && filteredTasks){
+      setFilteredTasks(prev => ({
+        ...prev,
+        [fromColumn]: prev[fromColumn].filter(task => task._id !== deletedId)
+      }));
+    }
+    
   };
 
   const handleUserClick = (userId) => {
@@ -117,6 +138,9 @@ const DashboardPage = () => {
     try {
       const response = await axios.post('http://localhost:5000/api/tasks/create', taskData);
       console.log('Task Created:', response.data);
+
+      setFilteredTasks(null);
+      setSelectedTag('');
 
       setTasks(prev => ({
         ...prev,
@@ -137,6 +161,32 @@ const DashboardPage = () => {
     setSelectedTask(taskData);
     setIsModalOpen(true);
   };
+
+
+  const filterTasksByTags = () => {
+    if (!selectedTag) return;
+
+    const grouped = {
+      todo : [],
+      inProgress : [],
+      review : [],
+      done : [],
+    };
+    Object.keys(tasks).forEach(status => {
+      console.log("Status:", status, "Tasks:", tasks[status], "sELECTED tag:", selectedTag);
+      grouped[status] = tasks[status].filter(tasks =>
+        tasks.tags?.some(tag => tag.toLowerCase() === selectedTag.toLowerCase())
+      );
+      console.log("Filtered:", grouped[status]);
+    });
+
+    setFilteredTasks(grouped);
+  }
+
+  const clearFilter = () => {
+    setFilteredTasks(null);
+    setSelectedTag('');
+  }
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -162,11 +212,11 @@ const DashboardPage = () => {
                 >
                   Create Task
                 </button>
-                <button className="w-full bg-green-600 hover:bg-green-700 py-2 px-4 rounded">
+                <button className="w-full bg-green-600 hover:bg-green-700 py-2 px-4 rounded" onClick={filterTasksByTags}>
                   Filter
                 </button>
-                <button className="w-full bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded">
-                  Reports
+                <button className="w-full bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded" onClick={clearFilter}>
+                  clear Filter
                 </button>
               </div>
             )}
@@ -176,6 +226,21 @@ const DashboardPage = () => {
           <div className="flex-1 overflow-auto p-6">
             <h1 className="text-3xl font-bold mb-6">Project Board</h1>
             <div className="p-6">
+
+            <label className='block mb-2 font-semibold'>Filter by Tag:</label>
+            <select
+              value={selectedTag}
+              onChange={e => setSelectedTag(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">Select a tag</option>
+              <option value="bug">Bug</option>
+              <option value="feature">Feature</option>
+              <option value="improvement">Improvement</option>
+              <option value="urgent">Urgent</option>
+            </select>
+
+
               <div className="flex flex-wrap justify-start gap-4">
                 {users.map((user, index) => (
                   <div
@@ -194,7 +259,7 @@ const DashboardPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <KanbanColumn
                 title="To Do"
-                tasks={tasks?.todo}
+                tasks={(filteredTasks || tasks)?.todo} 
                 column="todo"
                 moveTask={moveTask}
                 color="bg-blue-600"
@@ -203,7 +268,7 @@ const DashboardPage = () => {
               />
               <KanbanColumn
                 title="In Progress"
-                tasks={tasks?.inProgress}
+                tasks={(filteredTasks || tasks)?.inProgress} 
                 column="inProgress"
                 moveTask={moveTask}
                 color="bg-yellow-600"
@@ -212,7 +277,7 @@ const DashboardPage = () => {
               />
               <KanbanColumn
                 title="Review"
-                tasks={tasks?.review}
+                tasks={(filteredTasks || tasks)?.review} 
                 column="review"
                 moveTask={moveTask}
                 color="bg-purple-600"
@@ -221,7 +286,7 @@ const DashboardPage = () => {
               />
               <KanbanColumn
                 title="Done"
-                tasks={tasks?.done}
+                tasks={(filteredTasks || tasks)?.done} 
                 column="done"
                 moveTask={moveTask}
                 color="bg-green-600"
@@ -230,7 +295,7 @@ const DashboardPage = () => {
               />
               <KanbanColumn
                 title="Published"
-                tasks={tasks?.published}
+                tasks={(filteredTasks || tasks)?.published}
                 column="published"
                 moveTask={moveTask}
                 color="bg-gray-700"

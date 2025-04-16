@@ -7,7 +7,6 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
   const [tags, setTags] = useState('');
   const [assignee, setAssignee] = useState('');
   const [label, setLabel] = useState('');
-  const tagsOptions = ['Bug', 'Feature', 'Improvement', 'Urgent'];
   const [snapshots, setSnapshots] = useState([]);
   const storyBox = useRef(null);
   const [story, setStory] = useState("");
@@ -227,18 +226,19 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
             />
             <label className="block mb-1 font-semibold">Tags</label>
             <select
-
-              value={tags}
-              onChange={e => setTags(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">Select a tag</option>
-              {tagsOptions.map(tag => (
-                <option key={tag} value={tag}>
-                  {tag}
-                </option>
-              ))}
-            </select>
+                value={tags}
+                onChange={e => setTags(e.target.value)}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">Select a tag</option>
+                <option key = "drama" value="drama">🎭 Drama</option>
+                <option key = "comedy" value="comedy">😂 Comedy</option>
+                <option key = "action" value="action">🎬 Action</option>
+                <option key = "fantasy" value="fantasy">🧙 Fantasy</option>
+                <option key = "mystery" value="mystery">🕵️ Mystery</option>
+                <option key = "horror" value="horror">🧟 Horror</option>
+                <option key = "adventure" value="adventure">🎩 Adventure</option>
+              </select>
           </div>
 
           <div className="space-y-4">

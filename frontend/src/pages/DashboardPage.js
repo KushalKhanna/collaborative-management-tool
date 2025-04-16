@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import ViewTaskModal from '../components/ViewTaskModal';
 import io from 'socket.io-client';
 
+
 const socket = io('http://localhost:5000');
 
 const DashboardPage = () => {
@@ -31,6 +32,7 @@ const DashboardPage = () => {
   const [filteredTasks, setFilteredTasks] = useState(null);
   const [otherLoggedInUser, setOtherLoggedInUsers] = useState([]);
   const [currentOpenTaskId, setCurrentOpenTaskId] = useState();
+
   // const [viewingTasks, setViewingTasks] = useState(null);
 
   // Array of distinct colors for user circles
@@ -200,6 +202,7 @@ const DashboardPage = () => {
 
   const handleCreateTask = async (taskData) => {
     try {
+      
       const response = await axios.post('http://localhost:5000/api/tasks/create', taskData);
       console.log('Task Created:', response.data);
 
@@ -228,6 +231,7 @@ const DashboardPage = () => {
       inProgress : [],
       review : [],
       done : [],
+      published: []
     };
     Object.keys(tasks).forEach(status => {
       console.log("Status:", status, "Tasks:", tasks[status], "sELECTED tag:", selectedTag);
@@ -381,18 +385,23 @@ const DashboardPage = () => {
           <div className="flex-1 overflow-auto p-6">
             <h1 className="text-3xl font-bold mb-6">Project Board</h1>
             <div className="p-6">
-            <label className='block mb-2 font-semibold'>Filter by Tag:</label>
-            <select
-              value={selectedTag}
-              onChange={e => setSelectedTag(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">Select a tag</option>
-              <option value="bug">Bug</option>
-              <option value="feature">Feature</option>
-              <option value="improvement">Improvement</option>
-              <option value="urgent">Urgent</option>
-            </select>
+            <div className='dropdown-container'>
+              <label className='block mb-2 font-semibold'>Filter by Story Type:</label>
+              <select
+                value={selectedTag}
+                onChange={e => setSelectedTag(e.target.value)}
+                className="b-full p-2 w-1/2 m-4 border-2 rounded-lg bg-gray-50 text-black focus:border-blue-500 font-bold "
+              >
+                <option value="">Select a tag</option>
+                <option value="drama">🎭 Drama</option>
+                <option value="comedy">😂 Comedy</option>
+                <option value="action">🎬 Action</option>
+                <option value="fantasy">🧙 Fantasy</option>
+                <option value="mystery">🕵️ Mystery</option>
+                <option value="horror">🧟 Horror</option>
+                <option value="adventure">🎩 Adventure</option>
+              </select>
+            </div>
               <div className="flex flex-wrap justify-start gap-4">
                 {users.map((user, index) => (
                   <div
@@ -460,7 +469,7 @@ const DashboardPage = () => {
                 <KanbanColumn
                   key={col}
                   title={col === 'inProgress' ? 'In Progress' : col.charAt(0).toUpperCase() + col.slice(1)}
-                  tasks={tasks?.[col]}
+                  tasks={(filteredTasks || tasks)?.[col]}
                   column={col}
                   moveTask={moveTask}
                   color={

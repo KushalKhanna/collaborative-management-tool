@@ -8,10 +8,14 @@ import CreateTaskModal from '../components/CreateTaskModal';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ViewTaskModal from '../components/ViewTaskModal';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:5000');
 
 const DashboardPage = () => {
-  const loggedInUser = localStorage.getItem('loggedInUser');
+  const loggedInUser = sessionStorage.getItem('loggedInUser');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  // const [loadingTasks, setLoadingTasks] = useState({});
   const [tasks, setTasks] = useState({
     todo: [],
     inProgress: [],
@@ -25,6 +29,9 @@ const DashboardPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState(''); 
   const [filteredTasks, setFilteredTasks] = useState(null);
+  const [otherLoggedInUser, setOtherLoggedInUsers] = useState([]);
+  const [currentOpenTaskId, setCurrentOpenTaskId] = useState();
+  // const [viewingTasks, setViewingTasks] = useState(null);
 
   // Array of distinct colors for user circles
   const colors = [
@@ -79,9 +86,69 @@ const DashboardPage = () => {
     };
 
     fetchTasks();
+    // fetchTasks();
+
+    // Listen to WebSocket events
+    // socket.on('show-loading', (taskId) => {
+    //   setLoadingTasks((prev) => ({ ...prev, [taskId]: true }));
+    // });
+    
+    // socket.on('hide-loading', (taskId) => {
+    //   setLoadingTasks((prev) => ({ ...prev, [taskId]: false }));
+    // });
+
+    // return () => {
+    //   // socket.off('show-loading');
+    //   // socket.off('hide-loading');
+    // };
   }, []);
 
+  // HANDLE EDITING TASKS
+  // useEffect(() => {
+  //   socket.on('show-loading', ({ taskId }) => {
+  //     setLoadingTasks(prev => ({ ...prev, [taskId]: true }));
+  //   });
+
+  //   socket.on('hide-loading', ({ taskId }) => {
+  //     setLoadingTasks(prev => ({ ...prev, [taskId]: false }));
+  //   });
+
+  //   return () => {
+  //     socket.off('show-loading');
+  //     socket.off('hide-loading');
+  //   };
+  // }, []);
+
+  // const moveTaskConfirmed = async ({ fromColumn, toColumn, taskId }) => {
+  //   const taskToMove = tasks[fromColumn]?.find(task => task._id === taskId);
+  //   if (!taskToMove) return;
+
+  //   try {
+  //     await axios.put(`http://localhost:5000/api/tasks/update/${taskId}`, {
+  //       status: toColumn
+  //     });
+
+  //     setTasks(prev => {
+  //       const updatedFrom = prev[fromColumn]?.filter(task => task._id !== taskId) || [];
+  //       const updatedTo = [...(prev[toColumn] || []), { ...taskToMove, status: toColumn }];
+
+  //       return {
+  //         ...prev,
+  //         [fromColumn]: updatedFrom,
+  //         [toColumn]: updatedTo
+  //       };
+  //     });
+  //   } catch (err) {
+  //     console.error("Failed to move task:", err);
+  //   }
+  // };
+
   const moveTask = async (fromColumn, toColumn, taskId) => {
+    if (fromColumn === 'published') {
+      toast.error('You cannot move tasks out of the Published column.');
+      return;
+    }
+    
     if (fromColumn === toColumn) return;
   
     const taskToMove = tasks[fromColumn]?.find(task => task._id === taskId);
@@ -92,10 +159,16 @@ const DashboardPage = () => {
         status: toColumn
       });
   
-      setTasks(prev => {
-        const updatedFrom = prev[fromColumn]?.filter(task => task._id !== taskId) || [];
-        const updatedTo = [...(prev[toColumn] || []), { ...taskToMove, status: toColumn }];
+      // setTasks(prev => {
+      //   const updatedFrom = prev[fromColumn]?.filter(task => task._id !== taskId) || [];
+      //   const updatedTo = [...(prev[toColumn] || []), { ...taskToMove, status: toColumn }];
   
+      //   return {
+      //     ...prev,
+      //     [fromColumn]: updatedFrom,
+      //     [toColumn]: updatedTo
+      //   };
+      // });
       if (selectedTag && filteredTasks){
         setFilteredTasks(prev => ({
           ...prev,
@@ -103,13 +176,6 @@ const DashboardPage = () => {
           [toColumn]: [...prev[toColumn], { ...taskToMove, status: toColumn }]
         }));
       }
-      
-        return {
-          ...prev,
-          [fromColumn]: updatedFrom,
-          [toColumn]: updatedTo
-        };
-      });
     } catch (err) {
       console.error("Failed to move task:", err);
     }
@@ -120,14 +186,12 @@ const DashboardPage = () => {
       ...prevTasks,
       [fromColumn]: prevTasks[fromColumn].filter(task => task._id !== deletedId)
     }));
-
     if (selectedTag && filteredTasks){
       setFilteredTasks(prev => ({
         ...prev,
         [fromColumn]: prev[fromColumn].filter(task => task._id !== deletedId)
       }));
     }
-    
   };
 
   const handleUserClick = (userId) => {
@@ -142,10 +206,11 @@ const DashboardPage = () => {
       setFilteredTasks(null);
       setSelectedTag('');
 
-      setTasks(prev => ({
-        ...prev,
-        todo: [...prev.todo || [], response.data.newTask]
-      }));
+
+      // setTasks(prev => ({
+      //   ...prev,
+      //   todo: [...prev.todo || [], response.data.newTask]
+      // }));
 
       toast.success('Task created successfully!');
       setIsModalOpen(false);
@@ -154,14 +219,6 @@ const DashboardPage = () => {
       toast.error('Failed to create task. Please try again.');
     }
   };
-
-  // CLICK VIEW TASK
-  const handleViewTask = async (taskData) => {
-    console.log(taskData);
-    setSelectedTask(taskData);
-    setIsModalOpen(true);
-  };
-
 
   const filterTasksByTags = () => {
     if (!selectedTag) return;
@@ -187,6 +244,104 @@ const DashboardPage = () => {
     setFilteredTasks(null);
     setSelectedTag('');
   }
+
+  // CLICK VIEW TASK
+  const handleViewTask = async (taskData) => {
+    console.log(taskData);
+    setSelectedTask(taskData);
+    setIsModalOpen(true);
+
+    // Websocket conn for view task
+    socket.emit('task-viewed', {
+      taskId: taskData._id,
+      userId: loggedInUser
+    });
+  };
+
+  // WEBSOCKETS
+  useEffect(() => {
+
+    // Create task listener
+    socket.on('task-created', (newTask) => {
+      console.log('New task received via socket:', newTask);
+      setTasks(prev => ({
+        ...prev,
+        todo: [...prev.todo || [], newTask]
+      }));
+    });
+
+    // Delete task listener
+    socket.on('task-deleted', ({ taskId, previousStatus }) => {
+      setTasks(prev => ({
+        ...prev,
+        [previousStatus]: prev[previousStatus].filter(task => task._id !== taskId)
+      }));
+    });
+
+    // Move task listener
+    socket.on('task-moved', ({ taskId, oldStatus, newStatus, updatedTask }) => {
+      setTasks(prev => {
+        // Create a new state object
+        const newState = { ...prev };
+        
+        // Remove from old column (if it exists there)
+        if (newState[oldStatus]) {
+          newState[oldStatus] = newState[oldStatus].filter(task => task._id !== taskId);
+        }
+        
+        // Add to new column (if not already present)
+        if (newState[newStatus] && !newState[newStatus].some(t => t._id === taskId)) {
+          newState[newStatus] = [...newState[newStatus], updatedTask];
+        }
+        
+        return newState;
+      });
+    });
+
+    // VIEW/EDIT Tasks
+    // socket.on('task-being-viewed', ({ taskId, userId }) => {
+    //   console.log("🚀 task-being-viewed received", { taskId, userId, loggedInUser });
+    //   // if (userId !== loggedInUser) {
+    //     setViewingTasks(prev => ({ ...prev, [taskId]: true }));
+    //   // }
+    // });
+  
+    // When others close the modal
+    // socket.on('task-view-ended', ({ taskId }) => {
+    //   setViewingTasks(prev => {
+    //     const newState = { ...prev };
+    //     delete newState[taskId];
+    //     return newState;
+    //   });
+    // });
+
+    // View/Edit tasks
+    socket.on('task-viewed', ({ taskId, userId }) => {
+      // Only show for other users
+      if (userId !== loggedInUser) {
+        console.log("HI - Task", taskId, "was clicked by another user" + " userId : " + userId);
+        setOtherLoggedInUsers(prev => 
+          prev.includes(userId) ? prev : [...prev, userId]
+        );
+        setCurrentOpenTaskId(taskId);
+      }
+    });
+
+    socket.on('task-view-ended', ({ taskId }) => {
+      setCurrentOpenTaskId(null); // This will remove the spinner
+    });
+  
+    // Clean up on unmount
+    return () => {
+      socket.off('task-created');
+      socket.off('task-viewed');
+      socket.off('task-moved');
+      socket.off('task-deleted');
+
+      socket.off('task-being-viewed');
+      socket.off('task-view-ended');
+    };
+  }, [loggedInUser]);
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -216,7 +371,7 @@ const DashboardPage = () => {
                   Filter
                 </button>
                 <button className="w-full bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded" onClick={clearFilter}>
-                  clear Filter
+                  Clear Filter
                 </button>
               </div>
             )}
@@ -226,7 +381,6 @@ const DashboardPage = () => {
           <div className="flex-1 overflow-auto p-6">
             <h1 className="text-3xl font-bold mb-6">Project Board</h1>
             <div className="p-6">
-
             <label className='block mb-2 font-semibold'>Filter by Tag:</label>
             <select
               value={selectedTag}
@@ -239,8 +393,6 @@ const DashboardPage = () => {
               <option value="improvement">Improvement</option>
               <option value="urgent">Urgent</option>
             </select>
-
-
               <div className="flex flex-wrap justify-start gap-4">
                 {users.map((user, index) => (
                   <div
@@ -256,10 +408,10 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <KanbanColumn
                 title="To Do"
-                tasks={(filteredTasks || tasks)?.todo} 
+                tasks={tasks?.todo}
                 column="todo"
                 moveTask={moveTask}
                 color="bg-blue-600"
@@ -268,7 +420,7 @@ const DashboardPage = () => {
               />
               <KanbanColumn
                 title="In Progress"
-                tasks={(filteredTasks || tasks)?.inProgress} 
+                tasks={tasks?.inProgress}
                 column="inProgress"
                 moveTask={moveTask}
                 color="bg-yellow-600"
@@ -277,7 +429,7 @@ const DashboardPage = () => {
               />
               <KanbanColumn
                 title="Review"
-                tasks={(filteredTasks || tasks)?.review} 
+                tasks={tasks?.review}
                 column="review"
                 moveTask={moveTask}
                 color="bg-purple-600"
@@ -286,7 +438,7 @@ const DashboardPage = () => {
               />
               <KanbanColumn
                 title="Done"
-                tasks={(filteredTasks || tasks)?.done} 
+                tasks={tasks?.done}
                 column="done"
                 moveTask={moveTask}
                 color="bg-green-600"
@@ -295,13 +447,35 @@ const DashboardPage = () => {
               />
               <KanbanColumn
                 title="Published"
-                tasks={(filteredTasks || tasks)?.published}
+                tasks={tasks?.published}
                 column="published"
                 moveTask={moveTask}
                 color="bg-gray-700"
                 handleViewTask={handleViewTask}
                 onDelete={handleDelete}
               />
+            </div> */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {['todo', 'inProgress', 'review', 'done', 'published'].map(col => (
+                <KanbanColumn
+                  key={col}
+                  title={col === 'inProgress' ? 'In Progress' : col.charAt(0).toUpperCase() + col.slice(1)}
+                  tasks={tasks?.[col]}
+                  column={col}
+                  moveTask={moveTask}
+                  color={
+                    col === 'todo' ? 'bg-blue-600' :
+                    col === 'inProgress' ? 'bg-yellow-600' :
+                    col === 'review' ? 'bg-purple-600' :
+                    col === 'done' ? 'bg-green-600' :
+                    'bg-gray-700'
+                  }
+                  handleViewTask={handleViewTask}
+                  onDelete={handleDelete}
+                  otherLoggedInUser={otherLoggedInUser}
+                  currentOpenTaskId={currentOpenTaskId}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -320,10 +494,27 @@ const DashboardPage = () => {
         onClose={() => {
           setIsModalOpen(false);
           setSelectedTask(null);
+          if (selectedTask) {
+            socket.emit('task-view-ended', { 
+              taskId: selectedTask._id,
+              userId: loggedInUser
+            });
+          }
         }}
         onSubmit={{ handleViewTask }}
         task={selectedTask}
+        socket={socket}
+        loggedInUser={loggedInUser}
       />
+
+{/* {showConfirm && (
+        <ConfirmationModal
+          title="Confirm Move"
+          message="Are you sure you want to move this task to Published? This action cannot be undone."
+          onConfirm={confirmMove}
+          onCancel={cancelMove}
+        />
+      )} */}
 
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
     </DndProvider>

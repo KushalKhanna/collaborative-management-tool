@@ -226,21 +226,21 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
               rows={5}
             />
             <label className="block mb-1 font-semibold">Tags</label>
-              <select
+            <select
+
               value={tags}
               onChange={e => setTags(e.target.value)}
               className="w-full p-2 border rounded"
-              >
-                <option value="">Select a tag</option>
-                {tagsOptions.map(tag => (
-                  <option key={tag} value={tag}>
-                    {tag}
-                  </option>
-                ))}
-              </select>
+            >
+              <option value="">Select a tag</option>
+              {tagsOptions.map(tag => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Right Section */}
           <div className="space-y-4">
             <div>
               <label className="block mb-1 font-semibold">Assignee</label>

@@ -11,6 +11,6 @@ app.use(express.json());
 // Routes
 // router.get('/', getSample);
 app.use('/api/users', userRoutes);
-app.use('/api/tasks', taskRoutes);
+// app.use('/api/tasks', taskRoutes);
 
 module.exports = app;

@@ -31,7 +31,7 @@ router.get('/get-all-tasks', async (req, res) => {
 
 // CREATE STORY
 router.post('/create', async (req, res) => {
-  const { title, description, tags, assignee, label, reporter } = req.body;
+  const { title, description, tags, assignee, label, reporter, snapshots } = req.body;
 
   try {
     const client = await connectToDb();
@@ -51,6 +51,7 @@ router.post('/create', async (req, res) => {
         assignee, 
         label, 
         reporter,
+        snapshots,
         ticketNumber,
         status: 'todo',
         createdAt: new Date()

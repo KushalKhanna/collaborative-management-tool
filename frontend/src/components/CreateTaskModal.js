@@ -81,6 +81,9 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
     };
 
   const handleStoryChange = (e) => {
+    //Snap shots are stored as a start index and end index
+    //This function's job is to incerase/ decrease those index's as the user types and deletes character
+    //This allows the index's to stay in sync w/ the intended text
     const newValue = e.target.value;
     const oldValue = previousStory.current;
   
@@ -170,7 +173,10 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
       ...snapToDisplayLinks,
       links: updatedLinks
     };
-  
+
+
+    //Only 1 "set" of links are displayed at once
+    //This sets the snapshot for which we want to display links
     setSnapToDisplayLinks(updatedSnap);
   
     setSnapshots([
@@ -303,6 +309,7 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
                             const text = storyBox.current?.value || '';
                             const snap = text.substring(snapshot.start, snapshot.end);
 
+                            {/*Brings cursor to start index of snapshot when button is clicked*/}
                             const goToCursor = () => {
                                 if (storyBox.current) {
                                   storyBox.current.focus();
@@ -321,6 +328,8 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
                             
                             };
 
+                            {/*Only 1 "set" of links are displayed at once*/}
+                            {/*This sets the snapshot for which we want to display links*/}
                             const showLinks = () => {
                               console.log("showLinks");
                               setSnapToDisplayLinks(snapshots[index]);

@@ -289,19 +289,35 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
             </div>
           </div>
 
-          {/* Snapshot selection*/}
-          <div className="snapshots-section">
+          
+
+          {/* Submit Button */}
+          <div className="lg:col-span-2 flex justify-end">
+            {/*
+              type="submit"
+              */}
+            <button
+              onClick={handleSubmit}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
+            >
+              Add
+            </button>
+          </div>
+        </form>
+
+{/* Snapshot selection*/}
+<div className="snapshots-section">
             <label className="text-xl font-bold mb-4">Snapshots</label>
             <br></br>
             <button type="button" className="w-full bg-zinc-100 hover:bg-blue-100 py-2 px-4 rounded" onClick={getSelectedTextRange}>Create Snapshot</button>
             <table className="table-fixed w-full border-collapse border border-gray-400">
                         <thead>
                             <tr>
-                            <th class="w-[50px] border border-gray-300 px-2 py-2 text-left">No.</th>
-                            <th class="w-[730px] border border-gray-300 px-2 py-2 text-left">Snapshot</th>
-                            <th class="w-[60px] border border-gray-300 px-2 py-2 text-left">Go To</th>
-                            <th class="w-[60px] border border-gray-300 px-2 py-2 text-left">Delete</th>
-                            <th class="w-[100px] border border-gray-300 px-2 py-2 text-left">Links</th>
+                            <th class="w-[10%] border border-gray-300 px-2 py-2 text-left">No.</th>
+                            <th class="w-[120%] border border-gray-300 px-2 py-2 text-left">Snapshot</th>
+                            <th class="w-[10%] border border-gray-300 px-2 py-2 text-left">Go To</th>
+                            <th class="w-[10%] border border-gray-300 px-2 py-2 text-left">Delete</th>
+                            <th class="w-[20%] border border-gray-300 px-2 py-2 text-left">Links</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -399,8 +415,8 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
                     <table className="table-fixed w-full border-collapse border border-gray-400">
                       <thead>
                         <tr>
-                          <th class="w-[930px] border border-gray-300 px-2 py-2 text-left">All Links</th>
-                          <th class="w-[70px] border border-gray-300 px-2 py-2 text-left">Delete</th>
+                          <th class="w-[90%] border border-gray-300 px-2 py-2 text-left">All Links</th>
+                          <th class="w-[10%] border border-gray-300 px-2 py-2 text-left">Delete</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -422,20 +438,9 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
                     )}
           </div>
 
-          {/* Submit Button */}
-          <div className="lg:col-span-2 flex justify-end">
-            {/*
-              type="submit"
-              */}
-            <button
-              onClick={handleSubmit}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
-            >
-              Add
-            </button>
-          </div>
-        </form>
       </div>
+
+      
     </div>
   );
 };

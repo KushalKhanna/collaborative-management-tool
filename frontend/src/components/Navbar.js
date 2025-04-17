@@ -41,7 +41,7 @@ const Navbar = () => {
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           {/* Logo on left */}
           <div className="flex items-center">
-            <div className="text-white font-bold text-xl mr-4">Jira</div>
+            <div className="text-white font-bold text-xl mr-4">Story Time</div>
           </div>
           
           {/* Search bar in middle - hidden on mobile */}

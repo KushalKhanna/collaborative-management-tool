@@ -330,7 +330,7 @@ const DashboardPage = () => {
                 <button className="w-full bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded"
                   onClick={() => setIsModalOpen(true)}
                 >
-                  Create Task
+                  Create Story
                 </button>
                 <button className="w-full bg-green-600 hover:bg-green-700 py-2 px-4 rounded" onClick={filterTasksByTags}>
                   Filter

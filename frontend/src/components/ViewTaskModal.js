@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import axios from 'axios';
 
 const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) => {
   const [title, setTitle] = useState('');
@@ -22,8 +23,32 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
   const [canDisplayLinks, setCanDisplayLinks] = useState(false);
   const [canSeeSnapshots, setCanSeeSnapshots] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
+    console.log("in viewtaskmodal");
     if (task) {
+
+      console.log(task);
+
+      console.log(task._id);
+    const data = {
+        storyid : task._id
+    };
+    setLoading(true);
+    axios
+      .post('http://localhost:5000/api/tasks/addview', data)
+      .then(() => {
+        setLoading(false);
+        //navigate('/');
+      })
+      .catch((error) => {
+        setLoading(false);
+        alert('Sadly an error has occurred :(');
+        console.log(error);
+      });
+
+
       setTitle(task.title || '');
       setDescription(task.description || '');
       setTags(task.tags || '');

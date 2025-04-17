@@ -9,6 +9,9 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ViewTaskModal from '../components/ViewTaskModal';
 import io from 'socket.io-client';
+//
+import { useNavigate } from 'react-router-dom';
+
 
 
 const socket = io('http://localhost:5000');
@@ -31,6 +34,9 @@ const DashboardPage = () => {
   const [filteredTasks, setFilteredTasks] = useState(null);
   const [otherLoggedInUser, setOtherLoggedInUsers] = useState([]);
   const [currentOpenTaskId, setCurrentOpenTaskId] = useState();
+  //
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   // Array of distinct colors for user circles
   const colors = [
@@ -210,9 +216,30 @@ const DashboardPage = () => {
     }
   };
 
+  const handleAddView = (storyid) => {
+    console.log(storyid);
+    const data = {
+        storyid
+    };
+    setLoading(true);
+    axios
+      .post('http://localhost:5000/addview', data)
+      .then(() => {
+        setLoading(false);
+        //navigate('/');
+      })
+      .catch((error) => {
+        setLoading(false);
+        alert('Sadly an error has occurred :(');
+        console.log(error);
+      });
+      console.log("view added 2");
+  };
+
   // CLICK VIEW TASK
   const handleViewTask = async (taskData) => {
     console.log(taskData);
+    handleAddView(taskData._id);
     setSelectedTask(taskData);
     setIsModalOpen(true);
 
@@ -330,7 +357,7 @@ const DashboardPage = () => {
                 <button className="w-full bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded"
                   onClick={() => setIsModalOpen(true)}
                 >
-                  Create Story
+                  Create 
                 </button>
                 <button className="w-full bg-green-600 hover:bg-green-700 py-2 px-4 rounded" onClick={filterTasksByTags}>
                   Filter

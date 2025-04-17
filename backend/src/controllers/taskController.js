@@ -6,6 +6,7 @@ module.exports = function(io) {
 
   const dbName = 'cs211';
   const collectionName = 'stories';
+  const viewCollection = 'storyViews';
 
   let currentTicketNumber = 1;
 
@@ -27,6 +28,39 @@ module.exports = function(io) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Failed to fetch entries." });
+    }
+  });
+
+// VIEW LOG
+router.post('/addview', async (req, res) => {
+  const { storyid } = req.body;
+  console.log("testing123");
+    try {
+      const client = await connectToDb();
+      const db = client.db(dbName);
+      const viewsCollection = db.collection(viewCollection); 
+
+      if (!storyid) {
+          return res.status(400).json({ error: 'Required fields are missing' });
+      }
+
+      const ticketNumber = getNextTicketNumber();
+
+    const newView = {
+        storyid, 
+        createdAt: new Date()
+    };
+
+      const result = await viewsCollection.insertOne(newView);
+      const viewWithId = { ...newView, _id: result.insertedId };
+
+      // Emit task creation event to the frontend
+
+      res.status(201).json({ message: 'View added successfully!', newView: viewWithId });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error creating view!' });
     }
   });
 

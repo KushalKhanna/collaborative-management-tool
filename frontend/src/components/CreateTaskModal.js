@@ -82,8 +82,8 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
 
   const handleStoryChange = (e) => {
     //Snap shots are stored as a start index and end index
-    //This function's job is to incerase/ decrease those index's as the user types and deletes character
-    //This allows the index's to stay in sync w/ the intended text
+    //This function's job is to incerase/ decrease those indexs as the user types and deletes character
+    //This allows the indexs to stay in sync w/ the intended text
     const newValue = e.target.value;
     const oldValue = previousStory.current;
   

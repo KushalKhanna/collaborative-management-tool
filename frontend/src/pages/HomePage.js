@@ -8,9 +8,9 @@ const HomePage = () => {
       <div className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <section className="text-center py-20">
-          <h1 className="text-5xl font-bold mb-6">Welcome to Our Platform</h1>
+          <h1 className="text-5xl font-bold mb-6">Welcome to Story Time!</h1>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Discover amazing features and services tailored just for you.
+            Collobrate with your friends to write amazing stories! 
           </p>
           <div className="flex justify-center gap-4">
             <button 
@@ -19,9 +19,11 @@ const HomePage = () => {
             >
               Get Started
             </button>
+            {/*
             <button className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-md font-medium transition-colors">
               Learn More
             </button>
+            */}
           </div>
         </section>
 

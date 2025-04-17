@@ -7,6 +7,7 @@ module.exports = function(io) {
   const dbName = 'cs211';
   const collectionName = 'stories';
   const viewCollection = 'storyViews';
+  const edithistoryCollectionName = 'editHistory';
 
   let currentTicketNumber = 1;
 
@@ -121,6 +122,8 @@ router.put('/update/:taskId', async (req, res) => {
       const client = await connectToDb();
       const db = client.db(dbName);
       const tasksCollection = db.collection(collectionName);
+      const editedCollection = db.collection(edithistoryCollectionName);
+     
 
       const currentTask = await tasksCollection.findOne({ 
           _id: new ObjectId(taskId) 
@@ -129,6 +132,13 @@ router.put('/update/:taskId', async (req, res) => {
       if (!currentTask) {
           return res.status(404).json({ message: 'Task not found' });
       }
+
+      const editHist = {
+        taskId: taskId,
+        oldData: currentTask,
+        newData: updatedData, //This is the old details
+        editedAt: new Date()
+    };
 
       const result = await tasksCollection.updateOne(
           { _id: new ObjectId(taskId) },
@@ -142,6 +152,8 @@ router.put('/update/:taskId', async (req, res) => {
       const updatedTask = await tasksCollection.findOne({ 
           _id: new ObjectId(taskId) 
       });
+
+      await editedCollection.insertOne(editHist);
 
       // Only emit if status changed
       if (updatedData.status && updatedData.status !== currentTask.status) {

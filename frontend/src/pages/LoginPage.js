@@ -14,7 +14,7 @@ const LoginPage = () => {
         password
       });
 
-      localStorage.setItem('loggedInUser', userName);
+      sessionStorage.setItem('loggedInUser', userName);
       toast.success('Login successful! Redirecting...', {
         autoClose: 3000,
         onClose: () => navigate('/dashboard'),

@@ -22,21 +22,21 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
   const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState("");
   const [canDisplayLinks, setCanDisplayLinks] = useState(false);
   const [canSeeSnapshots, setCanSeeSnapshots] = useState(false);
+  const loggedInUser = sessionStorage.getItem('loggedInUser');
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const loggedInUser = sessionStorage.getItem('loggedInUser');
     
     console.log("in viewtaskmodal");
     if (task) {
 
       console.log(task);
 
-      console.log(task._id);
+      console.log(loggedInUser);
     const data = {
         storyid : task._id,
-        user_id : loggedInUser
+        userid : loggedInUser
     };
     setLoading(true);
     axios

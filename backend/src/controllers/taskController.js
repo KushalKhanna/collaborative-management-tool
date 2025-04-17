@@ -34,8 +34,8 @@ module.exports = function(io) {
 
 // VIEW LOG
 router.post('/addview', async (req, res) => {
-  const { storyid , userViewed} = req.body;
-  console.log("testing123");
+  const { storyid , userid} = req.body;
+  console.log(userid);
     try {
       const client = await connectToDb();
       const db = client.db(dbName);
@@ -48,7 +48,7 @@ router.post('/addview', async (req, res) => {
       const ticketNumber = getNextTicketNumber();
 
     const newView = {
-        userViewed : userViewed,
+        userid,
         storyid, 
         createdAt: new Date()
     };

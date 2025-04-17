@@ -20,6 +20,7 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
   const [links, setLinks] = useState([]);
   const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState("");
   const [canDisplayLinks, setCanDisplayLinks] = useState(false);
+  const [canSeeSnapshots, setCanSeeSnapshots] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -32,6 +33,7 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
       setStatus(task.status || '');
       setTicketNumber(task.ticketNumber || '');
       setSnapshots(task.snapshots || []);
+      setCanSeeSnapshots(false);
     }
   }, [task]);
 
@@ -150,6 +152,7 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
       let removeStart = url.trim();
 
       // Add protocol if missing
+      //Otherwise the website will try and concatonate the link to this website's address
       if (!/^https?:\/\//i.test(removeStart)) {
         removeStart = `https://${removeStart}`;
       }
@@ -196,6 +199,21 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
       ...snapshots.slice(currentSnapshotIndex + 1)
     ]);
   };
+
+  //Snapshot functionality is conditionally rendered based on "canSeeSnapshots"
+  //Called when "displayHideSnaps" button is pressed
+  //Flips boolean of canSeeSnapshots
+  const flipCanSeeSnapshots = () => {
+
+    const newValue = !canSeeSnapshots;
+    setCanSeeSnapshots(newValue);
+
+    //changes text on "displayHideSnaps" button to appropriate value
+    const button = document.getElementById("displayHideSnaps");
+    if (button) {
+      button.innerText = newValue ? "Hide Snapshots" : "Show Snapshots";
+    }
+  }
 
   if (!show || !task) return null;
 
@@ -318,6 +336,10 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
           </div>
         </form>
         {/* Snapshot selection*/}
+        {/* Button to show / hides snapshots */}
+        <button type="button" id="displayHideSnaps" className="w-full bg-zinc-100 hover:bg-blue-100 py-2 px-4 rounded" onClick={flipCanSeeSnapshots}>Display Snapshots</button>
+        <div>
+        {canSeeSnapshots && (
         <div className="snapshots-section">
             <label className="text-xl font-bold mb-4">Snapshots</label>
             <br></br>
@@ -334,7 +356,9 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
                         </thead>
                         <tbody>
                             {snapshots.map((snapshot, index) => {
-                            const text = storyBox.current?.value || '';
+                            //const text = storyBox.current?.value || '';
+                            const tempText = description;
+                            const text = storyBox.current?.value ?? task.description;
                             const snap = text.substring(snapshot.start, snapshot.end);
 
                             const goToCursor = () => {
@@ -449,6 +473,8 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
                     </table>
                     </div>
                     )}
+                </div>
+                )}
           </div>
       </div>
     </div>

@@ -136,6 +136,7 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
       let removeStart = url.trim();
 
       // Add protocol if missing
+      //Otherwise the website will try and concatonate the link to this website's address
       if (!/^https?:\/\//i.test(removeStart)) {
         removeStart = `https://${removeStart}`;
       }
@@ -313,11 +314,11 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, users = [], currentUser })
             <table className="table-fixed w-full border-collapse border border-gray-400">
                         <thead>
                             <tr>
-                            <th class="w-[10%] border border-gray-300 px-2 py-2 text-left">No.</th>
-                            <th class="w-[120%] border border-gray-300 px-2 py-2 text-left">Snapshot</th>
-                            <th class="w-[10%] border border-gray-300 px-2 py-2 text-left">Go To</th>
-                            <th class="w-[10%] border border-gray-300 px-2 py-2 text-left">Delete</th>
-                            <th class="w-[20%] border border-gray-300 px-2 py-2 text-left">Links</th>
+                              <th class="w-[10%] border border-gray-300 px-2 py-2 text-left">No.</th>
+                              <th class="w-[120%] border border-gray-300 px-2 py-2 text-left">Snapshot</th>
+                              <th class="w-[10%] border border-gray-300 px-2 py-2 text-left">Go To</th>
+                              <th class="w-[10%] border border-gray-300 px-2 py-2 text-left">Delete</th>
+                              <th class="w-[20%] border border-gray-300 px-2 py-2 text-left">Links</th>
                             </tr>
                         </thead>
                         <tbody>

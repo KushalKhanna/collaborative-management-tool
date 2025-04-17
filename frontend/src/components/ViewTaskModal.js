@@ -348,7 +348,8 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
                 className="w-full p-2 border rounded"
               >
                 <option value="todo">To Do</option>
-                <option value="inprogress">In Progress</option>
+                <option value="inProgress">In Progress</option>
+                <option value="review">Review</option>
                 <option value="done">Done</option>
               </select>
             </div>

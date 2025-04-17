@@ -105,6 +105,8 @@ const DashboardPage = () => {
     }
     
     if (fromColumn === toColumn) return;
+
+    console.log(toColumn);
   
     const taskToMove = tasks[fromColumn]?.find(task => task._id === taskId);
     if (!taskToMove) return;
@@ -184,6 +186,7 @@ const DashboardPage = () => {
   const handleTaskUpdate = async (taskData) => {
     try {
       // Create a clean update object without React references
+      console.log(taskData);
       const cleanUpdate = {
         title: taskData.title,
         description: taskData.description,

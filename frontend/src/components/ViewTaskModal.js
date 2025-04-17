@@ -33,7 +33,7 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
       setStatus(task.status || '');
       setTicketNumber(task.ticketNumber || '');
       setSnapshots(task.snapshots || []);
-      setCanSeeSnapshots(false);
+      setCanSeeSnapshots(false); 
     }
   }, [task]);
 

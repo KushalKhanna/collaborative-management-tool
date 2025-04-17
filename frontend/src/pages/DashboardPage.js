@@ -189,9 +189,11 @@ const DashboardPage = () => {
         ...(taskData.snapshots && { snapshots: taskData.snapshots })
       };
       console.log(taskData._id);
-  
+      console.log(loggedInUser);
       let response;
       if(taskData._id) {
+
+        
         response = await axios.put(
         `http://localhost:5000/api/tasks/update/${taskData._id}`,
         cleanUpdate

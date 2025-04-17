@@ -185,6 +185,7 @@ const DashboardPage = () => {
     try {
       // Create a clean update object without React references
       const cleanUpdate = {
+        userId : loggedInUser,
         title: taskData.title,
         description: taskData.description,
         tags: taskData.tags,

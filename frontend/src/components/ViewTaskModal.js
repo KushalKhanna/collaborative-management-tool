@@ -26,6 +26,8 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const loggedInUser = sessionStorage.getItem('loggedInUser');
+    
     console.log("in viewtaskmodal");
     if (task) {
 
@@ -33,7 +35,8 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
 
       console.log(task._id);
     const data = {
-        storyid : task._id
+        storyid : task._id,
+        user_id : loggedInUser
     };
     setLoading(true);
     axios

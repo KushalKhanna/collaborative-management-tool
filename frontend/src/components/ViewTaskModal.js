@@ -26,7 +26,7 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
     if (task) {
       setTitle(task.title || '');
       setDescription(task.description || '');
-      setTags(task.tags?.join(', ') || '');
+      setTags(task.tags || '');
       setAssignee(task.assignee || '');
       setLabel(task.label || '');
       setReporter(task.reporter || '');
@@ -44,7 +44,7 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
       ...task,
       title,
       description,
-      tags: tags.split(',').map(tag => tag.trim()),
+      tags,
       assignee,
       label,
       reporter,
@@ -257,13 +257,20 @@ const ViewTaskModal = ({ show, onClose, task, onUpdate, users = [], onSubmit }) 
               className="w-full p-2 border rounded"
               rows={5}
             />
-            <input
-              type="text"
-              placeholder="Tags (comma separated)"
-              value={tags}
-              onChange={e => setTags(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
+            <select
+                value={tags}
+                onChange={e => setTags(e.target.value)}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">Select a tag</option>
+                <option key = "drama" value="drama">🎭 Drama</option>
+                <option key = "comedy" value="comedy">😂 Comedy</option>
+                <option key = "action" value="action">🎬 Action</option>
+                <option key = "fantasy" value="fantasy">🧙 Fantasy</option>
+                <option key = "mystery" value="mystery">🕵️ Mystery</option>
+                <option key = "horror" value="horror">🧟 Horror</option>
+                <option key = "adventure" value="adventure">🎩 Adventure</option>
+              </select>
           </div>
 
           {/* Right Section */}

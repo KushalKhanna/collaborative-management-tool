@@ -16,7 +16,6 @@ const socket = io('http://localhost:5000');
 const DashboardPage = () => {
   const loggedInUser = sessionStorage.getItem('loggedInUser');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  // const [loadingTasks, setLoadingTasks] = useState({});
   const [tasks, setTasks] = useState({
     todo: [],
     inProgress: [],
@@ -32,8 +31,6 @@ const DashboardPage = () => {
   const [filteredTasks, setFilteredTasks] = useState(null);
   const [otherLoggedInUser, setOtherLoggedInUsers] = useState([]);
   const [currentOpenTaskId, setCurrentOpenTaskId] = useState();
-
-  // const [viewingTasks, setViewingTasks] = useState(null);
 
   // Array of distinct colors for user circles
   const colors = [
@@ -88,62 +85,12 @@ const DashboardPage = () => {
     };
 
     fetchTasks();
-    // fetchTasks();
-
-    // Listen to WebSocket events
-    // socket.on('show-loading', (taskId) => {
-    //   setLoadingTasks((prev) => ({ ...prev, [taskId]: true }));
-    // });
-    
-    // socket.on('hide-loading', (taskId) => {
-    //   setLoadingTasks((prev) => ({ ...prev, [taskId]: false }));
-    // });
-
-    // return () => {
-    //   // socket.off('show-loading');
-    //   // socket.off('hide-loading');
-    // };
   }, []);
 
-  // HANDLE EDITING TASKS
-  // useEffect(() => {
-  //   socket.on('show-loading', ({ taskId }) => {
-  //     setLoadingTasks(prev => ({ ...prev, [taskId]: true }));
-  //   });
-
-  //   socket.on('hide-loading', ({ taskId }) => {
-  //     setLoadingTasks(prev => ({ ...prev, [taskId]: false }));
-  //   });
-
-  //   return () => {
-  //     socket.off('show-loading');
-  //     socket.off('hide-loading');
-  //   };
-  // }, []);
-
-  // const moveTaskConfirmed = async ({ fromColumn, toColumn, taskId }) => {
-  //   const taskToMove = tasks[fromColumn]?.find(task => task._id === taskId);
-  //   if (!taskToMove) return;
-
-  //   try {
-  //     await axios.put(`http://localhost:5000/api/tasks/update/${taskId}`, {
-  //       status: toColumn
-  //     });
-
-  //     setTasks(prev => {
-  //       const updatedFrom = prev[fromColumn]?.filter(task => task._id !== taskId) || [];
-  //       const updatedTo = [...(prev[toColumn] || []), { ...taskToMove, status: toColumn }];
-
-  //       return {
-  //         ...prev,
-  //         [fromColumn]: updatedFrom,
-  //         [toColumn]: updatedTo
-  //       };
-  //     });
-  //   } catch (err) {
-  //     console.error("Failed to move task:", err);
-  //   }
-  // };
+  const clearFilter = () => {
+    setFilteredTasks(null);
+    setSelectedTag('');
+  }
 
   const moveTask = async (fromColumn, toColumn, taskId) => {
     if (fromColumn === 'published') {
@@ -161,16 +108,6 @@ const DashboardPage = () => {
         status: toColumn
       });
   
-      // setTasks(prev => {
-      //   const updatedFrom = prev[fromColumn]?.filter(task => task._id !== taskId) || [];
-      //   const updatedTo = [...(prev[toColumn] || []), { ...taskToMove, status: toColumn }];
-  
-      //   return {
-      //     ...prev,
-      //     [fromColumn]: updatedFrom,
-      //     [toColumn]: updatedTo
-      //   };
-      // });
       if (selectedTag && filteredTasks){
         setFilteredTasks(prev => ({
           ...prev,
@@ -209,12 +146,6 @@ const DashboardPage = () => {
       setFilteredTasks(null);
       setSelectedTag('');
 
-
-      // setTasks(prev => ({
-      //   ...prev,
-      //   todo: [...prev.todo || [], response.data.newTask]
-      // }));
-
       toast.success('Task created successfully!');
       setIsModalOpen(false);
     } catch (error) {
@@ -244,10 +175,40 @@ const DashboardPage = () => {
     setFilteredTasks(grouped);
   }
 
-  const clearFilter = () => {
-    setFilteredTasks(null);
-    setSelectedTag('');
-  }
+  const handleTaskUpdate = async (taskData) => {
+    try {
+      // Create a clean update object without React references
+      const cleanUpdate = {
+        title: taskData.title,
+        description: taskData.description,
+        tags: taskData.tags,
+        assignee: taskData.assignee,
+        label: taskData.label,
+        status: taskData.status,
+        // Include only plain data, no functions or React elements
+        ...(taskData.snapshots && { snapshots: taskData.snapshots })
+      };
+      console.log(taskData._id);
+  
+      let response;
+      if(taskData._id) {
+        response = await axios.put(
+        `http://localhost:5000/api/tasks/update/${taskData._id}`,
+        cleanUpdate
+      );
+    }
+  
+    if (response?.data?.updatedTask) {
+      toast.success('Task updated successfully!');
+    }
+      return response?.data.updatedTask;
+      
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast.error(error.response?.data?.message || 'Failed to update task');
+      throw error;
+    }
+  };
 
   // CLICK VIEW TASK
   const handleViewTask = async (taskData) => {
@@ -302,23 +263,6 @@ const DashboardPage = () => {
       });
     });
 
-    // VIEW/EDIT Tasks
-    // socket.on('task-being-viewed', ({ taskId, userId }) => {
-    //   console.log("🚀 task-being-viewed received", { taskId, userId, loggedInUser });
-    //   // if (userId !== loggedInUser) {
-    //     setViewingTasks(prev => ({ ...prev, [taskId]: true }));
-    //   // }
-    // });
-  
-    // When others close the modal
-    // socket.on('task-view-ended', ({ taskId }) => {
-    //   setViewingTasks(prev => {
-    //     const newState = { ...prev };
-    //     delete newState[taskId];
-    //     return newState;
-    //   });
-    // });
-
     // View/Edit tasks
     socket.on('task-viewed', ({ taskId, userId }) => {
       // Only show for other users
@@ -334,6 +278,21 @@ const DashboardPage = () => {
     socket.on('task-view-ended', ({ taskId }) => {
       setCurrentOpenTaskId(null); // This will remove the spinner
     });
+
+    // 
+    socket.on('task-updated', (updatedTask) => {
+      // Update state without showing toast
+      setTasks(prev => {
+        const newTasks = {...prev};
+        Object.keys(newTasks).forEach(col => {
+          newTasks[col] = newTasks[col].filter(t => t._id !== updatedTask._id);
+        });
+        if (newTasks[updatedTask.status]) {
+          newTasks[updatedTask.status].push(updatedTask);
+        }
+        return newTasks;
+      });
+    });
   
     // Clean up on unmount
     return () => {
@@ -344,6 +303,8 @@ const DashboardPage = () => {
 
       socket.off('task-being-viewed');
       socket.off('task-view-ended');
+
+      socket.off('task-updated')
     };
   }, [loggedInUser]);
 
@@ -417,53 +378,6 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <KanbanColumn
-                title="To Do"
-                tasks={tasks?.todo}
-                column="todo"
-                moveTask={moveTask}
-                color="bg-blue-600"
-                handleViewTask={handleViewTask}
-                onDelete={handleDelete}
-              />
-              <KanbanColumn
-                title="In Progress"
-                tasks={tasks?.inProgress}
-                column="inProgress"
-                moveTask={moveTask}
-                color="bg-yellow-600"
-                handleViewTask={handleViewTask}
-                onDelete={handleDelete}
-              />
-              <KanbanColumn
-                title="Review"
-                tasks={tasks?.review}
-                column="review"
-                moveTask={moveTask}
-                color="bg-purple-600"
-                handleViewTask={handleViewTask}
-                onDelete={handleDelete}
-              />
-              <KanbanColumn
-                title="Done"
-                tasks={tasks?.done}
-                column="done"
-                moveTask={moveTask}
-                color="bg-green-600"
-                handleViewTask={handleViewTask}
-                onDelete={handleDelete}
-              />
-              <KanbanColumn
-                title="Published"
-                tasks={tasks?.published}
-                column="published"
-                moveTask={moveTask}
-                color="bg-gray-700"
-                handleViewTask={handleViewTask}
-                onDelete={handleDelete}
-              />
-            </div> */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {['todo', 'inProgress', 'review', 'done', 'published'].map(col => (
                 <KanbanColumn
@@ -514,6 +428,8 @@ const DashboardPage = () => {
         task={selectedTask}
         socket={socket}
         loggedInUser={loggedInUser}
+        users={users}
+        onUpdate={handleTaskUpdate}
       />
 
 {/* {showConfirm && (
